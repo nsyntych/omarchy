@@ -48,6 +48,8 @@ Example `shell.json` (bar subtree only shown):
 
 `centerAnchor` pins one center module to the exact horizontal/vertical center and flanks others around it. Set to an empty string to disable anchoring (the center list is centered as a group).
 
+`excludeScreens` lists output names (as shown by `hyprctl monitors`, e.g. `["DP-2"]`) that get no bar. Omit it or leave it empty to show the bar on every monitor.
+
 ## Module catalogue
 
 ### First-party interactive widgets

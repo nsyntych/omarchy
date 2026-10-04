@@ -49,6 +49,8 @@ Item {
     layout: { left: [], center: [], right: [] }
   })
   property var layoutConfig: fallbackBarConfig.layout
+  // Output names (e.g. "DP-2") from `bar.excludeScreens` that get no bar.
+  property var excludedScreens: []
   property string centerAnchor: ""
   property bool requestedTransparent: false
   property bool useTransparentForeground: false
@@ -591,12 +593,33 @@ Item {
     return BarModel.pinTrayToInner(entries, section)
   }
 
+  // Only reassign when the list really changes: the bar Variants rebuilds
+  // every monitor's bar whenever its model changes.
+  function setExcludedScreens(value) {
+    var next = Array.isArray(value)
+      ? value.filter(function(name) { return typeof name === "string" && name !== "" })
+      : []
+    if (JSON.stringify(next) !== JSON.stringify(excludedScreens))
+      excludedScreens = next
+  }
+
+  function barScreens() {
+    var screens = []
+    for (var i = 0; i < Quickshell.screens.length; i++) {
+      var screen = Quickshell.screens[i]
+      if (excludedScreens.indexOf(screen.name) === -1)
+        screens.push(screen)
+    }
+    return screens
+  }
+
   function applyBarConfig() {
     var config = Util.isPlainObject(barConfig) ? barConfig : fallbackBarConfig
 
     position = normalizePosition(config.position)
     setRequestedTransparency(config.transparent === true)
     centerAnchor = Util.canonicalWidgetId(config.centerAnchor || "")
+    setExcludedScreens(config.excludeScreens)
 
     // layoutEntries feeds plain JS arrays to the module Repeaters, and QML
     // cannot diff those: reassigning layoutConfig rebuilds every widget on
@@ -1207,7 +1230,7 @@ Item {
   }
 
   Variants {
-    model: Quickshell.screens
+    model: root.barScreens()
 
     delegate: Component {
       BarPanel {
